@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo '🚦 Checking SonarQube quality gate status...'
                 script {
-                    timeout(time: 2, unit: 'MINUTES') {
+                    timeout(time: 3, unit: 'MINUTES') {
                         waitForQualityGate abortPipeline: true
                     }
                 }
