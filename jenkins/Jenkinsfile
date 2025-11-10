@@ -1,28 +1,49 @@
 pipeline {
     agent any
-    options {
-        skipStagesAfterUnstable()
+
+    tools {
+        maven 'Maven3'
+        jdk 'JDK17'
     }
+
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                checkout scm
             }
         }
-        stage('Test') {
+
+        stage('Build') {
             steps {
-                sh 'mvn test'
+                sh 'mvn clean package'
             }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('MySonarQube') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=simple-java-maven-app'
                 }
             }
         }
-        stage('Deliver') { 
+
+        stage('Quality Gate') {
             steps {
-                sh './jenkins/scripts/deliver.sh' 
+                script {
+                    timeout(time: 2, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build and SonarQube analysis completed successfully!'
+        }
+        failure {
+            echo '❌ Build failed or SonarQube quality gate not passed.'
         }
     }
 }
