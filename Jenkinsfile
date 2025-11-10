@@ -24,6 +24,11 @@ pipeline {
                 withSonarQubeEnv('MySonarQube') {
                     sh 'mvn sonar:sonar -Dsonar.projectKey=simple-java-maven-app'
                 }
+                tools {
+    maven 'Maven3'
+    jdk 'JDK21'
+}
+
             }
         }
 
